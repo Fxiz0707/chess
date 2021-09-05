@@ -1,25 +1,27 @@
 #pragma once
 
+enum class SIDE;
+
 class CurrentGameState
 {
 public: 
 	CurrentGameState();
 
-	bool currentSide; 
+	SIDE mCurrentSide; 
 	
-	bool whiteKingMoved; 
-	bool whiteRightRookMoved; 
-	bool whiteLeftRookMoved; 
+	bool mWhiteKingMoved; 
+	bool mWhiteRightRookMoved; 
+	bool mWhiteLeftRookMoved; 
 
-	bool blackKingMoved; 
-	bool blackRightRookMoved; 
-	bool blackLeftRookMoved; 
+	bool mBlackKingMoved; 
+	bool mBlackRightRookMoved; 
+	bool mBlackLeftRookMoved; 
 
-	int whiteTotalPoints; 
-	int blackTotalPoints; 
+	int mWhiteTotalPoints; 
+	int mBlackTotalPoints; 
 
-	bool whiteWon = false; 
-	bool blackWon = false; 
+	bool mWhiteWon; 
+	bool mBlackWon; 
 
 	void reset(); 
 };

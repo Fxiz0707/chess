@@ -5,15 +5,12 @@
 class Piece : public sf::Drawable, public sf::Transformable
 {
 public:
-	char mPiece; 
-	sf::Vector2i mBoardPosition; 
-	
-	Piece(sf::Vector2i position, char piece); 
+	Piece(sf::Vector2f position, char piece); 
 	
 	Piece(); // only used for mCurrentlyHeld in Application 
 
 private: 
-	sf::RectangleShape mShape; 
+	sf::RectangleShape mShape_; 
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };

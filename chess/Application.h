@@ -1,12 +1,12 @@
 #pragma once
-#include <SFML/Graphics.hpp>
-#include <array>
+
 #include <vector>
+#include <iostream>
 
-#include "ChessGame.h"
+#include <SFML/Graphics.hpp>
+
 #include "Piece.h"
-#include "CurrentGameState.h"
-
+#include "ChessGame.h"
 #include "ComputerPlayer.h"
 
 class Application
@@ -15,32 +15,45 @@ public:
 	Application();
 	void run();
 private:
-	sf::RenderWindow mRenderWindow;
-	const sf::Time mTimeframe;
-	std::array<char, 64> mGameArr; // this field should only ever be edited by functions in the ChessGame namespace
-	CurrentGameState mCurrentGameState; 
+
+	sf::RenderWindow mRenderWindow_;
+	const sf::Time mTimeFrame_;
+
+	ChessGame mChessGame_; 
+	bool mWhiteWon_;
+	bool mBlackWon_; 
 
 	// drawing components 
-	sf::VertexArray mBackgroundBoard; 
-	std::vector<sf::CircleShape> mPossibleMoveMarkings; 
-	std::vector<Piece> mPieces; // gets synced by the pieces in mGameArr 
-	sf::Text mWhiteWinsText; 
-	sf::Text mBlackWinsText; 
+	sf::VertexArray mBackgroundBoard_; 
+	std::vector<sf::CircleShape> mPossibleMoveMarkings_; 
+	std::vector<Piece> mGamePieces_;
+	sf::Text mWhiteWinsText_; 
+	sf::Text mBlackWinsText_; 
 
 	// sound components 
-	sf::Sound mClickSound; 
-	sf::Sound mPieceTakenSound; 
+	sf::Sound mPieceMovedSound_; 
+	sf::Sound mCheckSound_; 
 
 	// the piece that the user is currently attempting to drag 
-	Piece mCurrentlyHeldPiece; 
-	bool mUserIsCurrentlyHoldingPiece; 
+	Piece mCurrentlyHeldPiece_; 
+	bool mUserIsCurrentlyHoldingPiece_; 
+	sf::Vector2i mCurrentlyHeldPiecePos_; 
 
 	void update(sf::Time dt);
 	void render();
-	void handleEvents();
+	void handle_events();
 
 	// ran after a move has been made
-	void updateDrawingComponents(); 
+	void update_drawing_components(); 
 
-	void resetBoard(); 
+	void reset_board();
+
+
+	void handle_mouse_press(sf::Vector2i mousePos);
+
+	void updatePossibleMarkings(sf::Vector2i boardPos); 
+
+	void handle_mouse_release(sf::Vector2i mousePos);
+
+	void handle_mouse_moved(sf::Vector2i mousePos); 
 };

@@ -1,23 +1,19 @@
 #include "Piece.h"
 
-Piece::Piece(sf::Vector2i position, char piece) : 
-	mShape(sf::Vector2f{80.f, 80.f}),
-	mPiece(piece),
-	mBoardPosition(position)
+Piece::Piece(sf::Vector2f position, char piece) : 
+	mShape_(sf::Vector2f{80.f, 80.f})
 {
-	setPosition({ 80.f * mBoardPosition.x , 80.f * mBoardPosition.y});
-	mShape.setTexture(&Resources::getTexture(mPiece)); 
+	setPosition({ position.x , position.y});
+	mShape_.setTexture(&Resources::getTexture(piece));
 }
 
 Piece::Piece() : 
-	mShape(sf::Vector2f(-1.f, -1.f)), 
-	mPiece('#'), 
-	mBoardPosition({-1, -1})
+	mShape_(sf::Vector2f(-1.f, -1.f))
 {
 } 
 
 void Piece::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	states.transform = getTransform(); 
-	target.draw(mShape, states); 
+	target.draw(mShape_, states); 
 }

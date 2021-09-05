@@ -1,100 +1,147 @@
-#include "ComputerPlayer.h"
+﻿#include "ComputerPlayer.h"
 
-static int count = 0; 
+// testing
+#include <iostream>
 
-int ComputerPlayer::minimax(int depth, CurrentGameState state, std::array<char, 64> board, int alpha, int beta)
+void ComputerPlayer::do_computer_move(int depth, ChessGame& chessGame)
 {
-	if (depth == 0) // static analysis 
-	{
-		int output = 0;
-		int knightCount = 0;
+	assert(chessGame.get_current_side() == SIDE::BLACK);
 
-		for (char possiblePiece : board)
+	int minEval = INT_MAX;
+
+	sf::Vector2i posOfMovingPiece;
+	sf::Vector2i posPieceIsMovingTo;
+
+	ChessGame winningGame;
+	for (auto possibility : gen(chessGame))
+	{
+		int eval = minimax(depth - 1, possibility);
+		if (eval < minEval)
 		{
-			switch (possiblePiece)
+			minEval = eval;
+			winningGame = possibility;
+		}
+	}
+	chessGame = winningGame; 
+}
+
+int ComputerPlayer::static_eval(const std::array<char, 64>& gameBoard)
+{
+	int eval = 0;
+
+	for (int j = 0; j < 8; j++)
+	{
+		for (int i = 0; i < 8; i++)
+		{
+			switch (gameBoard[i + 8 * j])
 			{
-			case('P'):
-				output -= 10;
-				break;
-			case('N'):
-				knightCount++;
-				output -= 30;
-				break;
-			case('B'):
-				output -= 30;
+			case 'r':
+				eval += 50;
 				break;
 			case('R'):
-				output -= 60;
-				break;
-			case('Q'):
-				output -= 90;
-				break;
-			case('K'):
-				output -= 900;
-				break;
-			case('p'):
-				output += 10;
+				eval -= 50;
 				break;
 			case('n'):
-				output += 30;
+				eval += 30;
+				break;
+			case('N'):
+				eval -= 30;
 				break;
 			case('b'):
-				output += 30;
+				eval += 30;
 				break;
-			case('r'):
-				output += 60;
+			case('B'):
+				eval -= 30;
 				break;
 			case('q'):
-				output += 90;
+				eval += 90;
+				break;
+			case('Q'):
+				eval -= 90;
 				break;
 			case('k'):
-				output += 900;
+				eval += 10000;
+				break;
+			case('K'):
+				eval -= 10000;
+				break;
+			case('p'):
+				eval += 10;
+				break;
+			case('P'):
+				eval -= 10;
 				break;
 			default:
-				output += 0;
+				eval += 0;
 			}
 		}
-		count++;
-		
-		if (count == 2117)
-		{
-			int eh = 3; 
-		}
-
-		return output; 
 	}
 
-	if (state.currentSide == 0)  // white turn 
+	return eval;
+}
+
+std::vector<ChessGame> ComputerPlayer::gen(const ChessGame& chessGame)
+{
+	std::vector<ChessGame> allPossibilities;
+
+	for (int j = 0; j < 8; j++)
 	{
-		int currentMax = INT_MIN; 
-		state.currentSide = 1; // switching sides, assuming that the other person makes their OPTIMAL move 
-		for (std::array<char, 64>& possibleBoard : ChessGame::everyPosition(state, board)) // whites turn, white goes through every single position that black can make from here 
+		for (int i = 0; i < 8; i++)
 		{
-			int eval = minimax(depth - 1, state, possibleBoard, alpha, beta); // evaluates each one further 
-			currentMax = std::max(currentMax, eval);  
-			alpha = std::max(alpha, eval); 
-			//currentMax = std::max(currentMax, minimax(depth - 1, state, possibleBoard, alpha, beta)); 
-			//alpha = std::max(alpha, currentMax); // what white is guaranteed
-			if (alpha >= beta) break; 
+			if (chessGame.get_game_board()[i + 8 * j] != '#')
+			{
+				// this if statement ensures that only possibilities that are reachable by the CURRENT SIDE, are explored 
+				if (ChessLogic::get_side(chessGame.get_game_board()[i + 8 * j]) == chessGame.get_current_side())
+				{
+					std::vector<sf::Vector2i> possiblePositions = chessGame.get_available_positions({ i, j });
+
+					for (sf::Vector2i possiblePosition : possiblePositions)
+					{
+						ChessGame possibleGame = chessGame; // expensive copy 
+						if (possibleGame.move({ i, j }, possiblePosition))
+						{
+							allPossibilities.push_back(possibleGame); // expensive copy - again  
+						};
+
+					}
+				}
+			}
 		}
-		return currentMax; 
-	}
-	else
-	{
-		int currentMin = INT_MAX; 
-		state.currentSide = 0; 
-		for (std::array<char, 64>& possibleBoard : ChessGame::everyPosition(state, board)) // goes through every single position that white can make 
-		{
-			int eval = minimax(depth - 1, state, possibleBoard, alpha, beta); // evaluates the position 
-			currentMin = std::min(currentMin, eval); 
-			beta = std::min(beta, currentMin); 
-		//	currentMin = std::min(currentMin, minimax(depth - 1, state, possibleBoard, alpha, beta));
-		///*	std::cout << currentMin << std::endl; */
-		//	beta = std::min(beta, currentMin); 
-			if (alpha >= beta) break; 
-		}
-		return currentMin; 
 	}
 
-	return 0; 
+	return allPossibilities;
+}
+
+int ComputerPlayer::minimax(int depth, ChessGame chessGame, int alpha, int beta)
+{
+	if (depth == 0) return static_eval(chessGame.get_game_board());
+
+	if (chessGame.get_current_side() == SIDE::WHITE)
+	{
+		int maxEval = INT_MIN;
+		for (auto possibility : gen(chessGame))
+		{
+			int eval = minimax(depth - 1, possibility, alpha, beta);
+			maxEval = std::max(maxEval, eval);
+			alpha = std::max(alpha, eval);
+
+			if (alpha > beta) break;
+		}
+		return maxEval;
+	}
+	else if (chessGame.get_current_side() == SIDE::BLACK)
+	{
+		int minEval = INT_MAX;
+		for (auto possibility : gen(chessGame))
+		{
+			int eval = minimax(depth - 1, possibility, alpha, beta);
+			minEval = std::min(minEval, eval);
+			beta = std::min(beta, eval);
+			if (alpha > beta) break;
+		}
+		return minEval;
+	}
+
+	assert(false);
+	return 0;
 }
